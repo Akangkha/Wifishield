@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package netshield.agent;
+
+option go_package = "netshield/proto;agentpb";
+
+message NetworkMetric {
+  string device_id        = 1;
+  string user_id          = 2;
+  string domain           = 3;  // "remote-work", "exam", "telemedicine"
+
+  int64  timestamp_unix   = 4;
+  string ssid             = 5;
+  string interface_name   = 6;
+
+  int32  signal_percent   = 7;
+  int32  avg_ping_ms      = 8;
+
+  int32  experience_score = 9;  // 0-100
+}
+
+message ControlMessage {
+  string type  = 1;
+  string data  = 2;
+}
+
+service AgentService {
+  rpc StreamMetrics (stream NetworkMetric) returns (stream ControlMessage);
+}

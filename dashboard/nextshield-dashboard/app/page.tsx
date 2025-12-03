@@ -27,7 +27,7 @@ export default function HomePage() {
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[2fr_1.3fr] gap-8">
         <section className="space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold leading-tight bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 bg-clip-text text-transparent">
-            NetShield
+            WifiShield
           </h1>
           <p className="text-slate-400 text-sm md:text-base max-w-xl">
             Real-time network experience monitoring and intelligent Wi-Fi
@@ -85,7 +85,7 @@ export default function HomePage() {
               </p>
               <p className="text-[11px] text-slate-400 mt-1">
                 {authed
-                  ? "You are signed in and can access the NetShield Network Intelligence Console."
+                  ? "You are signed in and can access the WifiShield Network Intelligence Console."
                   : "Sign in to view live device telemetry and network health scores in the admin dashboard."}
               </p>
             </div>

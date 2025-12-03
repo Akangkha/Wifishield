@@ -8,11 +8,11 @@ export default function HomePage() {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const router = useRouter();
-if (typeof window !== 'undefined')
-  return null;
   useEffect(() => {
     const run = async () => {
       const { data } = await supabase.auth.getUser();
+      console.log(data.user);
+      console.log(!!data.user);
       setAuthed(!!data.user);
       setChecking(false);
     };

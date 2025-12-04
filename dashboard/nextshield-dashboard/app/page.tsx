@@ -24,8 +24,47 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-100 flex items-center justify-center px-6">
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[2fr_1.3fr] gap-8">
+    <main className="min-h-screen bg-[#020617] text-slate-100 flex items-center justify-center px-6 relative overflow-hidden">
+      <div className="absolute top-6 right-6 flex flex-col sm:flex-row gap-3 z-10">
+        <a
+          href="https://github.com/Akangkha/Wifishield/releases/download/v1.0.4/WifiShieldGUI_windows_installer.exe"
+          download="WifiShieldGUI_Installer.exe"
+          className="group flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/30 bg-slate-950/50 hover:bg-cyan-950/30 transition-all backdrop-blur-md text-xs text-cyan-200/80 hover:text-cyan-100 hover:border-cyan-500/60"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity"
+          >
+            <path d="M3 12V6.75L9 5.25V12H3ZM3 17.25V13.5H9V18.75L3 17.25ZM21 18.75V13.5H10.5V18.75L21 18.75ZM10.5 12V5.25L21 3.75V12H10.5Z" />
+          </svg>
+          <span className="font-medium">Desktop Widget</span>
+        </a>
+
+        <a
+          href="https://github.com/Akangkha/Wifishield/releases/download/v1.0.4/shieldagent.exe"
+          download="WiiShieldCLI.exe"
+          className="group flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-slate-950/50 hover:bg-emerald-950/30 transition-all backdrop-blur-md text-xs text-emerald-200/80 hover:text-emerald-100 hover:border-emerald-500/60"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity"
+          >
+            <polyline points="4 17 10 11 4 5" />
+            <line x1="12" x2="20" y1="19" y2="19" />
+          </svg>
+          <span className="font-medium">CLI Agent</span>
+        </a>
+      </div>
+
+      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[2fr_1.3fr] gap-8 z-0">
         <section className="space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold leading-tight bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 bg-clip-text text-transparent">
             WifiShield
@@ -72,7 +111,7 @@ export default function HomePage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs text-slate-400">Access status</p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text[11px] text-slate-500">
                 {new Date().toLocaleTimeString()}
               </p>
             </div>

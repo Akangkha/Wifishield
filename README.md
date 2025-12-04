@@ -1,16 +1,23 @@
-# <img width="1864" height="1717" alt="app_logo" src="https://github.com/user-attachments/assets/08af2f54-b9ce-4c0a-b701-c024ce031c95" />
- NetShield – Intelligent Wi-Fi Failover & Real-Time Network Health
+<div align="left">
+  <img src="https://github.com/user-attachments/assets/08af2f54-b9ce-4c0a-b701-c024ce031c95" width="80" height="80" align="left" style="margin-right: 20px" />
+  <h1 style="padding-top: 20px;">
+    WifiShield <br>
+    <span style="font-size: 0.5em; font-weight: normal;">Intelligent Wi-Fi Failover & Real-Time Network Health</span>
+  </h1>
+</div>
+<br clear="left"/>
  <img width="1918" height="855" alt="image" src="https://github.com/user-attachments/assets/33faa55e-034b-4c93-b2c6-fed78ffe837c" />
 
 
 > **“Because losing your network mid-exam / interview / call should never be the reason you fail.”**
 
-NetShield is a **desktop network resilience system** that runs on your machine, continuously monitors Wi-Fi quality, and automatically switches to better networks when your current one degrades.
+WifiShield is a **desktop network resilience system** that runs on your machine, continuously monitors Wi-Fi quality, and automatically switches to better networks when your current one degrades.
 
-It ships as **two executables**:
+It ships as **three executables**:
 
-- **NetShield Agent** – lightweight Go-based background process (CLI).
-- **NetShield Desktop** – Electron-based GUI widget with system tray integration.
+- **WifiShield Agent** – lightweight Go-based background process (CLI).
+- **WifiShield Desktop** – Electron-based GUI widget with system tray integration.
+- **WifiShield Admin Console** – NextJs based admin console for the admin to monitor the network failover of the participants.
 
 Together, they give you **live Wi-Fi health, a beautiful desktop widget, and automatic failover** – built with **Golang, Electron, Next.js, Supabase & PostgreSQL**.
 
@@ -22,11 +29,11 @@ End users don’t need Go, Node, or Docker.
 
 1. Go to **GitHub → Releases** for this repo.
 2. Download:
-   - `NetShield-Agent.exe` – CLI background agent
-   - `NetShield-Desktop-Setup.exe` – installer for the GUI widget
+   - `WifiShield-Agent.exe` – CLI background agent
+   - `Wifihield-Desktop-Setup.exe` – installer for the GUI widget
 3. Install & run:
-   - Start **NetShield Agent** (runs in the background, console or service).
-   - Install and launch **NetShield Desktop** (system tray + widget window).
+   - Start **WifiShield Agent** (runs in the background, console or service).
+   - Install and launch **WifiShield Desktop** (system tray + widget window).
 
 > 💡 The widget reads live metrics from the **local agent** via `http://127.0.0.1:9090/current`.  
 > No internet / server required for the GUI to function.
@@ -163,6 +170,9 @@ client/widget/dist/NetShield Setup.exe
 ## 🧑‍💻 About the Author
 
 Built end-to-end by **Akangkha**:
+<a href="https://www.linkedin.com/in/akangkha-sarkar">
+    <img src="https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+ </a>
 
 * Full-stack engineer with strong systems, cloud & networking background.
 * Implemented:
@@ -174,6 +184,7 @@ Built end-to-end by **Akangkha**:
   * Next.js admin console
   * Supabase auth integration
   * Dockerized backend
+  * 
 
 ---
 
@@ -181,7 +192,6 @@ Built end-to-end by **Akangkha**:
 
 If this project resonates with you:
 
-* ⭐ Star the repo
 * 📩 Reach out for:
 
   * Internship/full-time SDE roles/ cloud infrastructure roles

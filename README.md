@@ -1,7 +1,7 @@
 <div align="left">
   <img src="https://github.com/user-attachments/assets/08af2f54-b9ce-4c0a-b701-c024ce031c95" width="80" height="80" align="left" style="margin-right: 20px" />
   <h1 style="padding-top: 20px;">
-    WifiShield <br>
+    WifiShield 
     <span style="font-size: 0.5em; font-weight: normal;">Intelligent Wi-Fi Failover & Real-Time Network Health</span>
   </h1>
 </div>

@@ -26,6 +26,7 @@ func (s *AgentServiceServer) StreamMetrics(stream agentpb.AgentService_StreamMet
 	for {
 		m, err := stream.Recv()
 		if err == io.EOF {
+			
 			return nil
 		}
 		if err != nil {

@@ -22,8 +22,7 @@ func New(serverAddr string) (*Client, error) {
 	c := agentpb.NewAgentServiceClient(conn)
 	stream, err := c.StreamMetrics(context.Background())
 	if err != nil {
-		conn.Close()
-		return nil, err
+		log.Print("[agent] failed to connect to server:", err)
 	}
 	cli := &Client{
 		conn:   conn,

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"netshield/agent/internal/wifi"
+	agentpb "netshield/agent/proto"
 	"os/exec"
 	"sync"
 	"time"
@@ -33,6 +35,7 @@ type Monitor struct {
 
 	mu       sync.RWMutex
 	snapshot Snapshot
+	OnMetric func(*agentpb.NetworkMetric)
 }
 
 func (m *Monitor) Start(ctx context.Context) error {
@@ -84,8 +87,26 @@ func (m *Monitor) checkOnce() error {
 		Score:       score,
 		LastUpdated: time.Now(),
 	}
-	m.mu.Unlock()
 
+	m.mu.Unlock()
+	log.Print("profile:", m.snapshot.Profile)
+	if m.OnMetric != nil {
+		metric := &agentpb.NetworkMetric{
+			DeviceId:        status.SSID,        // or hostname / generated ID
+			UserId:          status.ProfileName, // optional
+			Domain:          "laptop",           // optional
+			TimestampUnix:   time.Now().Unix(),
+			Ssid:            status.SSID,
+			InterfaceName:   status.InterfaceName, // if available
+			SignalPercent:   int32(status.Signal),
+			AvgPingMs:       int32(avgPing),
+			ExperienceScore: int32(score),
+		}
+
+		m.OnMetric(metric)
+	} else {
+		log.Println("[monitor] no OnMetric handler set")
+	}
 	badSignal := status.Signal > 0 && status.Signal < m.Config.MinSignalPercent
 	badPing := avgPing > 0 && avgPing > m.Config.MaxAvgPingMs
 

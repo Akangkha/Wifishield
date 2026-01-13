@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: netshield-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: netshield
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - netshield-net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: netshield-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@netshield.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - netshield-net
+
+  server:
+    image: netshield-server
+    container_name: netshield-server
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      NETSHIELD_DB_DSN: postgres://postgres:postgres123@postgres:5432/netshield
+
+    ports:
+      - "8082:8082"
+      - "50051:50051"
+    networks:
+      - netshield-net
+
+networks:
+  netshield-net:
+
+volumes:
+  pgdata:

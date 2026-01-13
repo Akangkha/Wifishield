@@ -30,7 +30,7 @@
     "build:desktop": "next build && electron-builder -w"
   },
   "dependencies": {
-    "next": "16.0.6",
+    "next": "16.0.10",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },

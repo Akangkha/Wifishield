@@ -67,7 +67,7 @@ func startLocalAPI(m *monitor.Monitor) {
 	})
 
 	mux.HandleFunc("/current", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -86,6 +86,7 @@ func startLocalAPI(m *monitor.Monitor) {
 		_ = json.NewEncoder(w).Encode(snap)
 
 	})
+	
 
 	addr := ":9090"
 	log.Println("[agent] local API on http://" + addr + "/current")

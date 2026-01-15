@@ -5,6 +5,7 @@ import (
 	"time"
 
 	agentpb "netshield/agent/proto"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -123,4 +124,51 @@ func (s *Store) DeleteOldMetrics(ctx context.Context, olderThan time.Duration) e
 	cutoff := time.Now().Add(-olderThan)
 	_, err := s.Pool.Exec(ctx, `DELETE FROM metrics_raw WHERE ts < $1`, cutoff)
 	return err
+}
+
+func (s *Store) GetDevicesByLink(
+	ctx context.Context,
+	ssid string, //network identifier
+	activeWithin time.Duration,
+) ([]DeviceStatusRow, error) {
+
+	rows, err := s.Pool.Query(ctx, `
+		SELECT
+			device_id,
+			user_id,
+			domain,
+			ssid,
+			signal_percent,
+			avg_ping_ms,
+			experience_score,
+			last_seen
+		FROM device_status
+		WHERE ssid = $1
+		ORDER BY last_seen DESC
+	`, ssid);
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var devices []DeviceStatusRow
+	for rows.Next() {
+		var d DeviceStatusRow
+		if err := rows.Scan(
+			&d.DeviceID,
+			&d.UserID,
+			&d.Domain,
+			&d.SSID,
+			&d.SignalPercent,
+			&d.AvgPingMs,
+			&d.ExperienceScore,
+			&d.LastSeen,
+		); err != nil {
+			return nil, err
+		}
+		devices = append(devices, d)
+	}
+
+	return devices, nil
 }

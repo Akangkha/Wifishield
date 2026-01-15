@@ -38,7 +38,7 @@ services:
     depends_on:
       - postgres
     environment:
-      NETSHIELD_DB_DSN: postgres://postgres:postgres123@postgres:5432/netshield
+      NETSHIELD_DB_DSN: postgres://postgres:postgres123@postgres:5432/netshield?sslmode=disable
 
     ports:
       - "8082:8082"

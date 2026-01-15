@@ -25,6 +25,7 @@ func main() {
 	ctx := context.Background()
 
 	dsn := os.Getenv("NETSHIELD_DB_DSN")
+	// dsn := "postgres://user:pass@localhost:5432/netshield?sslmode=disable"
 	if dsn == "" {
 		// Example: postgres://user:pass@localhost:5432/netshield?sslmode=disable
 		log.Println("NETSHIELD_DB_DSN not set")
@@ -78,8 +79,8 @@ func startHTTPServer(store *db.Store) {
 		ctx := r.Context()
 		status, err := store.GetAllDeviceStatus(ctx)
 		if status == nil {
-	status = []db.DeviceStatusRow{}
-}
+			status = []db.DeviceStatusRow{}
+		}
 
 		if err != nil {
 			http.Error(w, "db error: "+err.Error(), http.StatusInternalServerError)
@@ -94,6 +95,47 @@ func startHTTPServer(store *db.Store) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+
+	http.HandleFunc("/api/admin/links/devices", func(w http.ResponseWriter, r *http.Request) {
+		// CORS (same style as your /current)
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		ssid := r.URL.Query().Get("ssid")
+		if ssid == "" {
+			http.Error(w, "ssid is required", http.StatusBadRequest)
+			return
+		}
+
+		devices, err := store.GetDevicesByLink(
+			r.Context(),
+			ssid,
+			30*time.Second,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"link":    ssid,
+			"count":   len(devices),
+			"devices": devices,
+		})
+	})
+
 	addr := httpPort
 	log.Println("[server] HTTP status endpoint on", addr, "GET /status")
 	if err := http.ListenAndServe(addr, nil); err != nil {

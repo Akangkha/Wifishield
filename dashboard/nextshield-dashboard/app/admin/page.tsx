@@ -1,151 +1,240 @@
 "use client";
-import React from "react";
-import { useEffect, useMemo, useState } from "react";
+
+import React, { useCallback, useEffect, useMemo, useState, memo } from "react";
+import { supabase } from "../../lib/client";
 import { DomainFilter } from "../../components/DomainFilter";
 import { DataTable } from "../../components/DataTable";
-import { supabase } from "../../lib/client";
-
-const dummy = [
-  {
-    device_id: "device-001",
-    user_id: "Arjun",
-    domain: "exam",
-    last_seen: new Date().toISOString(),
-    ssid: "KIIT-DU",
-    interface_name: "Wi-Fi",
-    signal_percent: 24,
-    avg_ping_ms: 302,
-    experience_score: 28,
-  },
-  {
-    device_id: "device-002",
-    user_id: "Riya",
-    domain: "remote-work",
-    last_seen: new Date().toISOString(),
-    ssid: "JioFiber-5G",
-    interface_name: "Wi-Fi",
-    signal_percent: 81,
-    avg_ping_ms: 26,
-    experience_score: 92,
-  },
-  {
-    device_id: "device-003",
-    user_id: "Sagar",
-    domain: "telemedicine",
-    last_seen: new Date().toISOString(),
-    ssid: "Airtel-Xtreme",
-    interface_name: "Wi-Fi",
-    signal_percent: 56,
-    avg_ping_ms: 118,
-    experience_score: 63,
-  },
-  {
-    device_id: "device-004",
-    user_id: "Neha",
-    domain: "exam",
-    last_seen: new Date().toISOString(),
-    ssid: "Esperance",
-    interface_name: "Wi-Fi",
-    signal_percent: 39,
-    avg_ping_ms: 211,
-    experience_score: 44,
-  },
-];
+import { DeviceStatus } from "../../lib/api";
 
 export default function Admin() {
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
+  const [devices, setDevices] = useState<DeviceStatus[]>([]);
+  const [networkId, setNetworkId] = useState<string | null>(null);
+  const [time, setTime] = useState("");
 
+  /* ---------------- AUTH CHECK ---------------- */
   useEffect(() => {
-    const run = async () => {
-      const { data } = await supabase.auth.getUser();
+    supabase.auth.getUser().then(({ data }) => {
       setAuthed(!!data.user);
       setChecking(false);
-    };
-    run();
+    });
   }, []);
 
-  const data = useMemo(
-    () =>
-      dummy
-        .filter((d) =>
-          filter === "all" ? true : d.domain?.toLowerCase() === filter
-        )
-        .filter((d) => {
-          if (!query.trim()) return true;
-          const q = query.toLowerCase();
-          return (
-            d.device_id.toLowerCase().includes(q) ||
-            d.user_id?.toLowerCase().includes(q) ||
-            d.ssid?.toLowerCase().includes(q)
-          );
-        }),
-    [filter, query]
-  );
+  /* ---------------- CLOCK (isolated) ---------------- */
+  useEffect(() => {
+    const update = () => setTime(new Date().toLocaleTimeString());
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  if (checking)
-    return (
-      <main className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-300 text-sm">
-        Checking access…
-      </main>
-    );
+  /* ---------------- FETCH DEVICES ---------------- */
+  const fetchDevices = useCallback(async (ssid: string) => {
+    const res = await fetch(`/api/getDevices?ssid=${ssid}`);
+    const json = await res.json();
+    setDevices(json.devices || []);
+  }, []);
 
-  if (!authed)
-    return (
-      <main className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-300 text-sm">
-        <div className="text-center space-y-2">
-          <p>Unauthorized. Please sign in to access the admin console.</p>
-          <a
-            href="/login"
-            className="inline-flex px-3 py-1 rounded-md bg-emerald-500/90 text-slate-900 text-xs font-semibold hover:bg-emerald-400"
-          >
-            Go to login
-          </a>
-        </div>
-      </main>
-    );
+  useEffect(() => {
+    if (networkId) fetchDevices(networkId);
+  }, [networkId, fetchDevices]);
 
+  /* ---------------- FILTER DATA ---------------- */
+  const filteredData = useMemo(() => {
+    return devices
+      .filter((d) =>
+        filter === "all" ? true : d.domain?.toLowerCase() === filter
+      )
+      .filter((d) => {
+        if (!query) return true;
+        const q = query.toLowerCase();
+        return (
+          d.device_id?.toLowerCase().includes(q) ||
+          d.user_id?.toLowerCase().includes(q) ||
+          d.ssid?.toLowerCase().includes(q)
+        );
+      });
+  }, [devices, filter, query]);
+
+  /* ---------------- STABLE HANDLERS ---------------- */
+  const handleSignOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setAuthed(false);
+  }, []);
+
+  const clearNetwork = useCallback(() => {
+    setNetworkId(null);
+    setDevices([]);
+  }, []);
+
+  /* ---------------- GUARDS ---------------- */
+  if (checking) return <Loading text="Checking access…" />;
+  if (!authed) return <Unauthorized />;
+
+  /* ---------------- UI ---------------- */
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-100 flex justify-center px-6 py-10">
-      <div className="w-full max-w-7xl space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              WifiShield Network Intelligence Console
-            </h1>
-            <p className="text-slate-400 text-sm">
-              Real-time telemetry & performance scoring across connected devices
-            </p>
-          </div>
-          <div className="text-right text-xs text-slate-400 space-y-1">
-            <p>{new Date().toLocaleTimeString()}</p>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                setAuthed(false);
-              }}
-              className="px-3 py-1 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800"
-            >
-              Sign out
-            </button>
-          </div>
-        </header>
+    <main className="min-h-screen bg-[#020617] text-slate-100 px-6 py-10">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Header time={time} onSignOut={handleSignOut} />
 
-        <div className="flex flex-wrap justify-between items-center gap-3">
+        <div className="flex items-center gap-3">
+          <NetworkIdDialog onSubmit={setNetworkId} />
+          {networkId && (
+            <NetworkBanner networkId={networkId} onClear={clearNetwork} />
+          )}
+        </div>
+
+        <div className="flex justify-between items-center gap-3">
           <DomainFilter value={filter} onChange={setFilter} />
           <input
-            type="text"
-            placeholder="Search device, user or SSID"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-72 rounded-md border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-100 placeholder:text-slate-500 focus:ring-emerald-500/50 focus:ring-2 outline-none"
+            placeholder="Search device, user or SSID"
+            className="w-72 rounded-md border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
         </div>
 
-        <DataTable rows={data} />
+        <DataTable rows={filteredData} />
       </div>
     </main>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* -------------------------- COMPONENTS ------------------------------ */
+/* ------------------------------------------------------------------ */
+
+const Header = memo(function Header({
+  time,
+  onSignOut,
+}: {
+  time: string;
+  onSignOut: () => void;
+}) {
+  return (
+    <header className="flex justify-between items-center">
+      <div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+          WifiShield Network Intelligence Console
+        </h1>
+        <p className="text-slate-400 text-sm">
+          Real-time telemetry across connected devices
+        </p>
+      </div>
+
+      <div className="text-right text-xs text-slate-400 space-y-1">
+        <p>{time}</p>
+        <button
+          onClick={onSignOut}
+          className="px-3 py-1 rounded-md border border-slate-700 hover:bg-slate-800"
+        >
+          Sign out
+        </button>
+      </div>
+    </header>
+  );
+});
+
+const Loading = ({ text }: { text: string }) => (
+  <main className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-300 text-sm">
+    {text}
+  </main>
+);
+
+const Unauthorized = () => (
+  <main className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-300 text-sm">
+    <div className="text-center space-y-2">
+      <p>Unauthorized. Please sign in.</p>
+      <a
+        href="/login"
+        className="inline-flex px-3 py-1 rounded-md bg-emerald-500 text-slate-900 text-xs font-semibold"
+      >
+        Go to login
+      </a>
+    </div>
+  </main>
+);
+
+/* ---------------- NETWORK DIALOG ---------------- */
+
+const NetworkIdDialog = memo(function NetworkIdDialog({
+  onSubmit,
+}: {
+  onSubmit: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
+  const submit = () => {
+    if (!value.trim()) return;
+    onSubmit(value.trim());
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1 text-xs hover:border-emerald-500"
+      >
+        + Set Network ID
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+          <div className="w-96 rounded-lg border border-slate-700 bg-slate-900 p-4">
+            <h3 className="mb-2 text-sm font-semibold">Enter Network ID</h3>
+
+            <input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="e.g. esperance"
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/50"
+            />
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setOpen(false)}
+                className="text-xs text-slate-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submit}
+                className="rounded-md bg-emerald-600 px-3 py-1 text-xs text-black"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+});
+
+/* ---------------- NETWORK BANNER ---------------- */
+
+const NetworkBanner = memo(function NetworkBanner({
+  networkId,
+  onClear,
+}: {
+  networkId: string;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-emerald-600/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
+      <span>
+        Network: <b>{networkId}</b>
+      </span>
+      <button onClick={onClear} className="hover:text-red-400">
+        ✕
+      </button>
+    </div>
+  );
+});
+
+

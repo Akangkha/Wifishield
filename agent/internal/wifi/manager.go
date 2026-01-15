@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-// WifiProfile represents a saved Wi-Fi profile on Windows.
+// saved Wi-Fi profile on Windows.
 type WifiProfile struct {
-	RawName   string // exact name as Windows sees it
-	CleanName string // trimmed for display
+	RawName   string
+	CleanName string
 }
 
-// WifiStatus represents the current connection info.
+// WifiStatus - the current connection info.
 type WifiStatus struct {
 	InterfaceName string
 	SSID          string
@@ -21,7 +21,6 @@ type WifiStatus struct {
 	Signal        int // percentage 0-100
 }
 
-// Manager is an interface so you can swap implementations (Windows, mock, etc.).
 type Manager interface {
 	ListProfiles() ([]WifiProfile, error)
 	GetCurrentStatus() (*WifiStatus, error)
@@ -38,7 +37,6 @@ func (w WindowsManager) runNetsh(args ...string) (string, error) {
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
-
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("netsh %v failed: %v | stderr: %s", args, err, stderr.String())
 	}

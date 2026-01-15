@@ -8,6 +8,7 @@ import (
 	"netshield/agent/internal/wifi"
 	agentpb "netshield/agent/proto"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
@@ -30,12 +31,12 @@ type Snapshot struct {
 }
 
 type Monitor struct {
-	Wifi   wifi.Manager
-	Config Config
-
-	mu       sync.RWMutex
-	snapshot Snapshot
-	OnMetric func(*agentpb.NetworkMetric)
+	Wifi                wifi.Manager
+	Config              Config
+	SwitchAutomatically bool
+	mu                  sync.RWMutex
+	snapshot            Snapshot
+	OnMetric            func(*agentpb.NetworkMetric)
 }
 
 func (m *Monitor) Start(ctx context.Context) error {
@@ -114,6 +115,9 @@ func (m *Monitor) checkOnce() error {
 		return nil
 	}
 
+	if m.SwitchAutomatically {
+		return m.tryConnectVisibleNetworks()
+	}
 	return m.tryFailover(status)
 }
 
@@ -196,4 +200,82 @@ func pingHost(host string) (*wifi.SimplePingResult, error) {
 		return nil, fmt.Errorf("could not parse ping output")
 	}
 	return res, nil
+}
+
+func extractSSIDs(output string) []wifi.WifiProfile {
+	var ssids []wifi.WifiProfile
+
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		// Match: SSID X : NAME
+		if strings.HasPrefix(line, "SSID ") && strings.Contains(line, " : ") {
+			parts := strings.SplitN(line, " : ", 2)
+			if len(parts) == 2 {
+				name := strings.TrimSpace(parts[1])
+				if name != "" {
+					ssids = append(ssids, wifi.WifiProfile{
+						CleanName: name,
+						RawName:   name,
+					})
+				}
+			}
+		}
+	}
+
+	return ssids
+}
+
+func (m *Monitor) tryConnectVisibleNetworks() error {
+	output, err := exec.Command(
+		"netsh", "wlan", "show", "networks", "mode=bssid",
+	).Output()
+	if err != nil {
+		return err
+	}
+
+	visible := extractSSIDs(string(output))
+
+	savedProfiles, err := m.Wifi.ListProfiles()
+	if err != nil {
+		return err
+	}
+
+	// Build lookup for saved profiles
+	savedByName := make(map[string]wifi.WifiProfile)
+	for _, p := range savedProfiles {
+		savedByName[p.CleanName] = p
+	}
+
+	log.Println("[agent] visible SSIDs:")
+	for _, v := range visible {
+		log.Println(" -", v.CleanName)
+	}
+	for _, v := range visible {
+		// Check if visible SSID has a saved profile
+		p, ok := savedByName[v.CleanName]
+		if !ok {
+			log.Println("[agent] visible SSID has no saved profile:", v.CleanName)
+			continue // visible but no credentials
+		}
+
+		// Skip current connection
+		if p.CleanName == m.snapshot.Profile {
+			log.Println("[agent] already connected to:", p.RawName)
+			continue
+		}
+
+		log.Println("[agent] attempting connect to:", p.RawName)
+
+		if err := m.Wifi.Connect(p); err != nil {
+			log.Println("[monitor] connect failed:", err)
+			continue
+		}
+
+		log.Println("[agent] connected to:", p.RawName)
+		return nil
+	}
+
+	return nil
 }

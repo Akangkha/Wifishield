@@ -42,7 +42,8 @@ PROJECT_NAME=netshield
 COMPOSE_FILE=deploy/docker-compose.yaml
 
 SERVER_IMAGE=netshield-server
-AGENT_EXE=agent/bin/shieldagent.exe
+# AGENT_EXE=agent/bin/shieldagent.exe
+AGENT_EXE="go run C:\Users\KIIT\OneDrive\Desktop\project\NetSheild\agent\cmd\shieldagent\main.go"
 
 # -------------------------
 # Default target
@@ -116,9 +117,6 @@ agent:
 wait:
 	@echo "⏳ Waiting for server health..."
 	@until curl -sf http://localhost:8082/health > /dev/null; do sleep 1; done
-
-	@echo "⏳ Waiting for agent health..."
-	@until curl -sf http://localhost:9090/health > /dev/null; do sleep 1; done
 
 # -------------------------
 # Restart server only

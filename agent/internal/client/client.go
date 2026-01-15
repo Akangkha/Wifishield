@@ -23,6 +23,8 @@ func New(serverAddr string) (*Client, error) {
 	stream, err := c.StreamMetrics(context.Background())
 	if err != nil {
 		log.Print("[agent] failed to connect to server:", err)
+		conn.Close()
+		return nil, err
 	}
 	cli := &Client{
 		conn:   conn,
@@ -34,6 +36,10 @@ func New(serverAddr string) (*Client, error) {
 
 func (c *Client) listenControlAsync() {
 	go func() {
+		if c.stream == nil {
+			log.Println("[agent] control stream not initialized")
+			return
+		}
 		for {
 			msg, err := c.stream.Recv()
 			if err != nil {

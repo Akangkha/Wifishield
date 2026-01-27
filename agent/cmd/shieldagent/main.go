@@ -60,12 +60,9 @@ func main() {
 			metric.SignalPercent,
 			metric.AvgPingMs,
 		)
-
-
 		if client == nil {
 			return
 		}
-
 		if err := client.ReportMetric(metric); err != nil {
 			log.Println("[agent] failed to report metric:", err)
 		}

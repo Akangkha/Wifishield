@@ -52,7 +52,7 @@ func (w WindowsManager) ListProfiles() ([]WifiProfile, error) {
 	return ParseProfiles(out), nil
 }
 
-// GetCurrentStatus parses `netsh wlan show interfaces`.
+
 func (w WindowsManager) GetCurrentStatus() (*WifiStatus, error) {
 	out, err := w.runNetsh("wlan", "show", "interfaces")
 	if err != nil {
@@ -65,15 +65,12 @@ func (w WindowsManager) GetCurrentStatus() (*WifiStatus, error) {
 	return status, nil
 }
 
-// Connect connects to the given Wi-Fi profile.
 func (w WindowsManager) Connect(profile WifiProfile) error {
-	// Use the raw Windows name to avoid issues with trailing spaces.
 	args := []string{"wlan", "connect", "name=" + profile.RawName}
 	_, err := w.runNetsh(args...)
 	return err
 }
 
-// FindProfileByCleanName returns the profile with matching CleanName (case-sensitive).
 func FindProfileByCleanName(profiles []WifiProfile, name string) *WifiProfile {
 	for _, p := range profiles {
 		if strings.TrimSpace(p.CleanName) == strings.TrimSpace(name) {

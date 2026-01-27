@@ -13,24 +13,20 @@ func ParseProfiles(output string) []WifiProfile {
 	lines := strings.Split(output, "\n")
 
 	for _, line := range lines {
-		// Example:
-		//    All User Profile     : esperance␠
 		if strings.Contains(line, "All User Profile") {
-			// Keep original line endings trimmed, but don't trim fully.
 			line = strings.TrimRight(line, "\r\n")
 			parts := strings.SplitN(line, ":", 2)
 			if len(parts) != 2 {
 				continue
 			}
 
-			// parts[1] starts with at least one space.
 			raw := parts[1]
 			if len(raw) > 0 && raw[0] == ' ' {
 				raw = raw[1:]
 			}
 
 			profiles = append(profiles, WifiProfile{
-				RawName:   raw,                 // exact string as seen by Windows (including any trailing spaces)
+				RawName:   raw,                 
 				CleanName: strings.TrimSpace(raw),
 			})
 		}
@@ -38,7 +34,7 @@ func ParseProfiles(output string) []WifiProfile {
 	return profiles
 }
 
-// ParseCurrentStatus parses `netsh wlan show interfaces` to get current Wi-Fi info.
+
 func ParseCurrentStatus(output string) *WifiStatus {
 	lines := strings.Split(output, "\n")
 	status := &WifiStatus{}
@@ -70,7 +66,6 @@ func ParseCurrentStatus(output string) *WifiStatus {
 	return status
 }
 
-// afterColon returns the trimmed substring after the first ':'.
 func afterColon(line string) string {
 	parts := strings.SplitN(line, ":", 2)
 	if len(parts) != 2 {
@@ -79,9 +74,7 @@ func afterColon(line string) string {
 	return strings.TrimSpace(parts[1])
 }
 
-// --- Optional helper for debugging ---
 
-// DebugStatus formats status nicely.
 func DebugStatus(s *WifiStatus) string {
 	if s == nil {
 		return "no wifi status"

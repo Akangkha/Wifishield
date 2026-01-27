@@ -35,7 +35,7 @@
 
 
 # =========================
-# NetShield Makefile
+# Makefile
 # =========================
 
 PROJECT_NAME=netshield
@@ -50,17 +50,17 @@ AGENT_EXE="go run C:\Users\KIIT\OneDrive\Desktop\project\NetSheild\agent\cmd\shi
 # -------------------------
 .PHONY: execute
 execute: build up agent wait
-	@echo "✅ NetShield is READY"
+	@echo "-------------- WifiShield is READY -----------"
 	@echo "Server  : http://localhost:8082/status"
 	@echo "pgAdmin : http://localhost:5050"
-	@echo "Agent   : http://localhost:9090/current"
+# 	@echo "Agent   : http://localhost:9090/current"
 
 # -------------------------
 # Build server image
 # -------------------------
 .PHONY: build
 build:
-	@echo "▶ Building NetShield server image"
+	@echo "▶ Building WifiShield server image"
 	docker build -t $(SERVER_IMAGE) -f server/Dockerfile .
 
 # -------------------------
@@ -68,7 +68,7 @@ build:
 # -------------------------
 .PHONY: up
 up:
-	@echo "▶ Starting NetShield stack (docker-compose)"
+	@echo "▶ Starting WifiShield stack (docker-compose)"
 	docker compose -f $(COMPOSE_FILE) up -d --build
 
 # -------------------------
@@ -76,7 +76,7 @@ up:
 # -------------------------
 .PHONY: down
 down:
-	@echo "⏹ Stopping NetShield stack"
+	@echo "⏹ Stopping WifiShield stack"
 	docker compose -f $(COMPOSE_FILE) down
 
 # -------------------------
@@ -84,7 +84,7 @@ down:
 # -------------------------
 .PHONY: clean
 clean:
-	@echo "🧹 Cleaning NetShield (containers, volumes, images)"
+	@echo "🧹 Cleaning WifiShield (containers, volumes, images)"
 	docker compose -f $(COMPOSE_FILE) down -v
 	-docker rmi $(SERVER_IMAGE)
 
@@ -107,7 +107,7 @@ shell:
 # -------------------------
 .PHONY: agent
 agent:
-	@echo "▶ Starting NetShield agent (Windows native)"
+	@echo "▶ Starting WifiShield agent (Windows native)"
 	$(AGENT_EXE) &
 
 # -------------------------
